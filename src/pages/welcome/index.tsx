@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { NavLink } from "react-router";
+
 const Welcome = () => {
   return (
     <div>
