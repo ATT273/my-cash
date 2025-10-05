@@ -1,76 +1,142 @@
 import { useEffect, useState } from "react";
-import initSqlJs from "sql.js";
-import { loadFromIndexedDB, saveToIndexedDB } from "@/utils/storage";
-import { queryAll } from "@/lib/db";
+import { type Database } from "sql.js";
+import { initDB, saveToIndexedDB } from "@/utils/db";
+import type { ITransaction, TransactionInput } from "@/types/transaction.types";
 
 export const useDB = () => {
-  const [db, setDb] = useState<any>(null);
+  const [db, setDb] = useState<Database | null>(null);
+  const [transactions, setTransactions] = useState<ITransaction[]>([]);
+
   useEffect(() => {
     (async () => {
-      const SQL = await initSqlJs({
-        locateFile: (f) => `https://sql.js.org/dist/${f}`,
-      });
-      const existingDB = await loadFromIndexedDB(SQL);
-
-      let database;
-      if (existingDB) {
-        database = existingDB;
-        console.log("Loaded existing DB");
-      } else {
-        database = new SQL.Database();
-        database.run(`
-              CREATE TABLE IF NOT EXISTS transactions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                type TEXT,
-                category TEXT,
-                amount INTEGER,
-                note TEXT,
-                date TEXT
-              );
-            `);
-        console.log("Created new DB");
-      }
-
+      const database = await initDB();
       setDb(database);
+      loadTransactions(database);
     })();
   }, []);
 
-  const addExpense = async (formData: any) => {
+  const loadTransactions = (database: Database) => {
+    const res = database.exec("SELECT * FROM transactions ORDER BY date DESC");
+    if (res.length === 0) {
+      setTransactions([]);
+      return;
+    }
+    const { columns, values } = res[0];
+    const list = values.map((row) => {
+      const obj: any = {};
+      row.forEach((val, i) => (obj[columns[i]] = val));
+      return obj as ITransaction;
+    });
+    setTransactions(list);
+  };
+
+  const save = async (database: Database) => {
+    await saveToIndexedDB(database);
+    loadTransactions(database);
+  };
+
+  const addTransaction = async (
+    input: TransactionInput
+  ): Promise<ITransaction> => {
+    if (!db) throw new Error("DB not initialized");
+    const now = new Date().toISOString();
+    const tx: ITransaction = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      createdAt: now,
+      updatedAt: now,
+      ...input,
+    };
     db.run(
-      "INSERT INTO expenses (type, category, amount, note, date) VALUES (?, ?, ?, ?, ?)",
+      `INSERT INTO transactions (id, type, amount, category, note, date, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        formData.type,
-        formData.category,
-        formData.amount,
-        formData.note,
-        formData.date,
+        tx.id,
+        tx.type,
+        tx.amount,
+        tx.category ?? "",
+        tx.note ?? "",
+        tx.date,
+        tx.createdAt,
+        tx.updatedAt ?? "",
       ]
     );
-    await saveToIndexedDB(db);
-    console.log("Expense saved!");
+    await save(db);
+    return tx;
   };
 
-  const listExpenses = () => {
-    const res = queryAll(db, "SELECT * FROM expenses");
-    if (res.length > 0) {
-      console.log(res);
-    } else {
-      console.log("No data");
+  const updateTransaction = async (id: string, data: Partial<ITransaction>) => {
+    if (!db) return;
+    const now = new Date().toISOString();
+    db.run(
+      `UPDATE transactions
+       SET type = COALESCE(?, type),
+           amount = COALESCE(?, amount),
+           category = COALESCE(?, category),
+           note = COALESCE(?, note),
+           date = COALESCE(?, date),
+           updatedAt = ?
+       WHERE id = ?`,
+      [
+        data.type ?? null,
+        data.amount ?? null,
+        data.category ?? null,
+        data.note ?? null,
+        data.date ?? null,
+        now,
+        id,
+      ]
+    );
+    await save(db);
+  };
+
+  const deleteTransaction = async (id: string) => {
+    if (!db) return;
+    db.run(`DELETE FROM transactions WHERE id = ?`, [id]);
+    await save(db);
+  };
+
+  const clearTransactions = async () => {
+    if (!db) return;
+    db.run("DELETE FROM transactions");
+    await save(db);
+  };
+
+  const getBalance = () => {
+    let income = 0;
+    let expense = 0;
+    for (const t of transactions) {
+      if (t.type === "income") income += t.amount;
+      else expense += t.amount;
     }
+    return { income, expense, net: income - expense };
   };
 
-  function downloadDB() {
-    const data = db.export(); // Uint8Array
-    const blob = new Blob([data], { type: "application/x-sqlite3" });
+  const reload = async () => {
+    if (!db) return;
+    loadTransactions(db);
+  };
+
+  const exportDB = () => {
+    if (!db) return;
+    const data = db.export();
+    const blob = new Blob([data as unknown as BlobPart], {
+      type: "application/x-sqlite3",
+    });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "moneyApp.db";
     link.click();
-  }
+  };
+
   return {
     db,
-    addExpense,
-    listExpenses,
-    downloadDB,
+    transactions,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    clearTransactions,
+    getBalance,
+    reload,
+    exportDB,
   };
 };

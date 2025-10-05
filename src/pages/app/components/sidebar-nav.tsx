@@ -1,6 +1,11 @@
 import { NavLink } from "react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CircleUserRound, HandCoins, LayoutDashboard } from "lucide-react";
+import {
+  CircleUserRound,
+  HandCoins,
+  LayoutDashboard,
+  ChartColumnBig,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const SidebarNav = () => {
@@ -24,6 +29,16 @@ const SidebarNav = () => {
               className={isActive ? "bg-gray-200 text-gray-900" : ""}
             >
               <HandCoins />
+            </Button>
+          )}
+        </NavLink>
+        <NavLink to="report">
+          {({ isActive }) => (
+            <Button
+              variant={"ghost"}
+              className={isActive ? "bg-gray-200 text-gray-900" : ""}
+            >
+              <ChartColumnBig />
             </Button>
           )}
         </NavLink>
