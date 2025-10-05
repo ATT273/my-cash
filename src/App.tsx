@@ -5,6 +5,7 @@ import Welcome from "./pages/welcome";
 import ProtectedLayout from "./pages/app/layout";
 import Dashboard from "./pages/app/dashboard";
 import Transaction from "./pages/app/transaction";
+import Report from "./pages/app/report";
 
 const router = createBrowserRouter([
   {
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
       { index: true, Component: Dashboard },
       { path: "dashboard", Component: Dashboard },
       { path: "transaction", Component: Transaction },
+      { path: "report", Component: Report },
     ],
   },
 ]);
