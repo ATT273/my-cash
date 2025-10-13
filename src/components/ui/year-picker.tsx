@@ -6,12 +6,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MONTHS, YEARS } from "@/constants/calendar.constants";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { ReportType } from "@/types/report.types";
+import { DATE_PICKER_MODE } from "@/types/report.types";
 
 interface Props {
+  mode: (typeof DATE_PICKER_MODE)[keyof typeof DATE_PICKER_MODE];
   value: string;
-  mode?: ReportType;
+  type?: ReportType;
   disableYears?: string[];
   minTime?: string;
   maxTime?: string;
@@ -19,8 +21,9 @@ interface Props {
 }
 
 const YearPicker = ({
+  mode = DATE_PICKER_MODE.SINGLE,
   value,
-  mode = "year",
+  type = "year",
   disableYears,
   minTime,
   maxTime,
@@ -64,27 +67,30 @@ const YearPicker = ({
   }) {
     if (minValue.year === convertedValue.year) {
       const disabledMonths = [...MONTHS].filter(
-        (month) => month.value < parseInt(minValue.month)
+        (month) => parseInt(month.value) < parseInt(minValue.month)
       );
       return disabledMonths.map((month) => month.value.toString());
     }
     if (maxValue.year === convertedValue.year) {
       const disabledMonths = [...MONTHS].filter(
-        (month) => month.value > parseInt(maxValue.month)
+        (month) => parseInt(month.value) > parseInt(maxValue.month)
       );
       return disabledMonths.map((month) => month.value.toString());
     }
     return [];
   }
 
-  function handleValueChange(value: string, type: "year" | "month") {
-    if (mode === "year") {
-      onValueChange(`${value}-01-01`);
+  function handleValueChange(value: string, selectType: "year" | "month") {
+    if (type === "year") {
+      const date = mode === "range-start" ? "01-01" : "12-31";
+      onValueChange(`${value}-${date}`);
     } else {
-      if (type === "year") {
-        onValueChange(`${value}-undefined-01`);
+      if (selectType === "year") {
+        const date = mode === "range-start" ? "01-01" : "12-31";
+        onValueChange(`${value}-${date}`);
       } else {
-        onValueChange(`${convertedValue.year}-${value}-01`);
+        const date = mode === "range-start" ? "01" : "31";
+        onValueChange(`${convertedValue.year}-${value}-${date}`);
       }
     }
   }
@@ -114,7 +120,7 @@ const YearPicker = ({
           ))}
         </SelectContent>
       </Select>
-      {mode === "month" && (
+      {type === "month" && (
         <Select
           value={convertedValue.month ?? ""}
           onValueChange={(value) => handleValueChange(value, "month")}

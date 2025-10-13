@@ -1,7 +1,6 @@
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -10,10 +9,10 @@ import {
 import { useTransactions } from "../../components/app-provider";
 import type { TransactionType } from "@/types/transaction.types";
 import { formatCurrency } from "@/utils";
+import { Button } from "@/components/ui/button";
 
 const TransactionList = ({ type }: { type: TransactionType }) => {
   const { transactions } = useTransactions();
-  console.log("Transactions from context:", transactions);
   const list = transactions.filter((t) => t.type === type);
 
   return (
@@ -35,6 +34,12 @@ const TransactionList = ({ type }: { type: TransactionType }) => {
             </TableCell>
             <TableCell>{new Date(t.date).toDateString()}</TableCell>
             <TableCell>{t.note}</TableCell>
+            <TableCell className="w-[50px]">
+              <div className="flex gap-2">
+                <Button variant="ghost">Edit</Button>
+                <Button variant="ghost">Delete</Button>
+              </div>
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
