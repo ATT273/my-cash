@@ -1,3 +1,4 @@
+import type { IQueryParams } from "@/types/db.types";
 import initSqlJs, { type Database, type SqlJsStatic } from "sql.js";
 
 // ==========================
@@ -90,3 +91,13 @@ export async function loadFromIndexedDB(SQL: SqlJsStatic, key = "moneyAppDB") {
     request.onerror = () => reject(request.error);
   });
 }
+
+export const convertQueryParams = (params: IQueryParams) => {
+  const whereClause = [];
+  if (params.type) whereClause.push(`type = '${params.type}'`);
+  if (params.from) whereClause.push(`date >= '${params.from}'`);
+  if (params.to) whereClause.push(`date <= '${params.to}'`);
+  if (params.category) whereClause.push(`category = '${params.category}'`);
+  const where = whereClause.join(" AND ");
+  return where;
+};

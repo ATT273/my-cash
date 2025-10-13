@@ -1,11 +1,14 @@
 import type { ITransaction, TransactionInput } from "@/types/transaction.types";
 import { createContext, useContext } from "react";
 import { useDB } from "@/hooks/use-db.hooks";
+import type { Database, ParamsObject } from "sql.js";
+import type { IQueryParams } from "@/types/db.types";
 
 // ==========================
 // Context
 // ==========================
 interface TransactionsContextValue {
+  db: Database | null;
   transactions: ITransaction[];
   addTransaction: (input: TransactionInput) => Promise<ITransaction>;
   updateTransaction: (id: string, data: Partial<ITransaction>) => Promise<void>;
@@ -14,6 +17,10 @@ interface TransactionsContextValue {
   getBalance: () => { income: number; expense: number; net: number };
   reload: () => Promise<void>;
   exportDB: () => void;
+  getYearlySummary: (start: string, end: string) => ParamsObject[];
+  getMonthlySummary: (start: string, end: string) => ParamsObject[];
+  getIncomeTransactions: (params: IQueryParams) => ITransaction[];
+  getExpenseTransactions: (params: IQueryParams) => ITransaction[];
 }
 
 const TransactionsContext = createContext<TransactionsContextValue | undefined>(
@@ -36,11 +43,16 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({
     getBalance,
     reload,
     exportDB,
+    getYearlySummary,
+    getMonthlySummary,
+    getIncomeTransactions,
+    getExpenseTransactions,
   } = useDB();
 
   return (
     <TransactionsContext.Provider
       value={{
+        db,
         transactions,
         addTransaction,
         updateTransaction,
@@ -49,6 +61,10 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({
         getBalance,
         reload,
         exportDB,
+        getYearlySummary,
+        getMonthlySummary,
+        getIncomeTransactions,
+        getExpenseTransactions,
       }}
     >
       {children}

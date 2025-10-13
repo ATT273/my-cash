@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { type Database } from "sql.js";
-import { initDB, saveToIndexedDB } from "@/utils/db";
+import { convertQueryParams, initDB, saveToIndexedDB } from "@/utils/db";
 import type { ITransaction, TransactionInput } from "@/types/transaction.types";
+import type { IQueryParams } from "@/types/db.types";
 
 export const useDB = () => {
   const [db, setDb] = useState<Database | null>(null);
@@ -28,6 +29,86 @@ export const useDB = () => {
       return obj as ITransaction;
     });
     setTransactions(list);
+  };
+
+  const getMonthlySummary = (startDate: string, endDate: string) => {
+    if (!db) throw new Error("DB not initialized");
+    const stmt = db.prepare(`
+      SELECT 
+        strftime('%Y-%m', date) AS time,
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS totalIncome,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS totalExpense
+      FROM transactions
+      WHERE date BETWEEN ? AND ?
+      GROUP BY time
+      ORDER BY time;
+    `);
+    stmt.bind([startDate, endDate]);
+    const result = [];
+    while (stmt.step()) {
+      result.push(stmt.getAsObject());
+    }
+    stmt.free();
+
+    return result;
+  };
+
+  const getYearlySummary = (startDate: string, endDate: string) => {
+    if (!db) throw new Error("DB not initialized");
+    const stmt = db.prepare(`
+      SELECT 
+        strftime('%Y', date) AS time,
+        SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS totalIncome,
+        SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS totalExpense
+      FROM transactions
+      WHERE date BETWEEN ? AND ?
+      GROUP BY time
+      ORDER BY time;
+    `);
+    stmt.bind([startDate, endDate]);
+    const result = [];
+    while (stmt.step()) {
+      result.push(stmt.getAsObject());
+    }
+    stmt.free();
+
+    return result;
+  };
+
+  const getIncomeTransactions = (params: IQueryParams) => {
+    if (!db) throw new Error("DB not initialized");
+    const where = convertQueryParams(params);
+    const res = db.exec(
+      `SELECT * FROM transactions WHERE ${where} ORDER BY date DESC`
+    );
+    if (res.length === 0) {
+      return [];
+    }
+    const { columns, values } = res[0];
+    const list = values.map((row) => {
+      const obj: any = {};
+      row.forEach((val, i) => (obj[columns[i]] = val));
+      return obj as ITransaction;
+    });
+    return list;
+  };
+
+  const getExpenseTransactions = (params: IQueryParams) => {
+    if (!db) throw new Error("DB not initialized");
+    const where = convertQueryParams(params);
+    const res = db.exec(
+      `SELECT * FROM transactions WHERE ${where} ORDER BY date DESC`
+    );
+    if (res.length === 0) {
+      return [];
+    }
+    const { columns, values } = res[0];
+    const list = values.map((row) => {
+      const obj: any = {};
+      row.forEach((val, i) => (obj[columns[i]] = val));
+      return obj as ITransaction;
+    });
+    return list;
   };
 
   const save = async (database: Database) => {
@@ -131,6 +212,10 @@ export const useDB = () => {
   return {
     db,
     transactions,
+    getMonthlySummary,
+    getYearlySummary,
+    getIncomeTransactions,
+    getExpenseTransactions,
     addTransaction,
     updateTransaction,
     deleteTransaction,
