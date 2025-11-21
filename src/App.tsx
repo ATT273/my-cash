@@ -6,6 +6,7 @@ import ProtectedLayout from "./pages/app/layout";
 import Dashboard from "./pages/app/dashboard";
 import Transaction from "./pages/app/transaction";
 import Report from "./pages/app/report";
+import BudgetAllocationPage from "./pages/app/budget-allocation";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,7 @@ const router = createBrowserRouter([
       { path: "dashboard", Component: Dashboard },
       { path: "transaction", Component: Transaction },
       { path: "report", Component: Report },
+      { path: "budget-allocation", Component: BudgetAllocationPage },
     ],
   },
 ]);

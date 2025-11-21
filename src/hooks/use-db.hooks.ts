@@ -78,9 +78,7 @@ export const useDB = () => {
   const getIncomeTransactions = (params: IQueryParams) => {
     if (!db) throw new Error("DB not initialized");
     const where = convertQueryParams(params);
-    const res = db.exec(
-      `SELECT * FROM transactions WHERE ${where} ORDER BY date DESC`
-    );
+    const res = db.exec(`SELECT * FROM transactions WHERE ${where} ORDER BY date DESC`);
     if (res.length === 0) {
       return [];
     }
@@ -96,9 +94,7 @@ export const useDB = () => {
   const getExpenseTransactions = (params: IQueryParams) => {
     if (!db) throw new Error("DB not initialized");
     const where = convertQueryParams(params);
-    const res = db.exec(
-      `SELECT * FROM transactions WHERE ${where} ORDER BY date DESC`
-    );
+    const res = db.exec(`SELECT * FROM transactions WHERE ${where} ORDER BY date DESC`);
     if (res.length === 0) {
       return [];
     }
@@ -116,40 +112,42 @@ export const useDB = () => {
     loadTransactions(database);
   };
 
-  const addTransaction = async (
-    input: TransactionInput
-  ): Promise<ITransaction> => {
-    if (!db) throw new Error("DB not initialized");
-    const now = new Date().toISOString();
-    const tx: ITransaction = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      createdAt: now,
-      updatedAt: now,
-      ...input,
-    };
-    db.run(
-      `INSERT INTO transactions (id, type, amount, category, note, date, createdAt, updatedAt)
+  const addTransaction = async (input: TransactionInput): Promise<{ success: boolean }> => {
+    if (!db)
+      return {
+        success: false,
+      };
+    try {
+      const now = new Date().toISOString();
+      const tx: ITransaction = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        createdAt: now,
+        updatedAt: now,
+        ...input,
+      };
+      db.run(
+        `INSERT INTO transactions (id, type, amount, category, note, date, createdAt, updatedAt)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        tx.id,
-        tx.type,
-        tx.amount,
-        tx.category ?? "",
-        tx.note ?? "",
-        tx.date,
-        tx.createdAt,
-        tx.updatedAt ?? "",
-      ]
-    );
-    await save(db);
-    return tx;
+        [tx.id, tx.type, tx.amount, tx.category ?? "", tx.note ?? "", tx.date, tx.createdAt, tx.updatedAt ?? ""]
+      );
+      await save(db);
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        success: false,
+      };
+    }
   };
 
   const updateTransaction = async (id: string, data: Partial<ITransaction>) => {
-    if (!db) return;
-    const now = new Date().toISOString();
-    db.run(
-      `UPDATE transactions
+    if (!db) return { success: false };
+    try {
+      const now = new Date().toISOString();
+      db.run(
+        `UPDATE transactions
        SET type = COALESCE(?, type),
            amount = COALESCE(?, amount),
            category = COALESCE(?, category),
@@ -157,29 +155,50 @@ export const useDB = () => {
            date = COALESCE(?, date),
            updatedAt = ?
        WHERE id = ?`,
-      [
-        data.type ?? null,
-        data.amount ?? null,
-        data.category ?? null,
-        data.note ?? null,
-        data.date ?? null,
-        now,
-        id,
-      ]
-    );
-    await save(db);
+        [data.type ?? null, data.amount ?? null, data.category ?? null, data.note ?? null, data.date ?? null, now, id]
+      );
+      await save(db);
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        success: false,
+      };
+    }
   };
 
   const deleteTransaction = async (id: string) => {
-    if (!db) return;
-    db.run(`DELETE FROM transactions WHERE id = ?`, [id]);
-    await save(db);
+    if (!db) return { success: false };
+    try {
+      db.run(`DELETE FROM transactions WHERE id = ?`, [id]);
+      await save(db);
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        success: false,
+      };
+    }
   };
 
   const clearTransactions = async () => {
-    if (!db) return;
-    db.run("DELETE FROM transactions");
-    await save(db);
+    if (!db) return { success: false };
+    try {
+      db.run("DELETE FROM transactions");
+      await save(db);
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        success: false,
+      };
+    }
   };
 
   const getBalance = () => {
@@ -193,12 +212,13 @@ export const useDB = () => {
   };
 
   const reload = async () => {
-    if (!db) return;
+    if (!db) return { success: false };
     loadTransactions(db);
+    return { success: true };
   };
 
   const exportDB = () => {
-    if (!db) return;
+    if (!db) return { success: false };
     const data = db.export();
     const blob = new Blob([data as unknown as BlobPart], {
       type: "application/x-sqlite3",
@@ -207,6 +227,7 @@ export const useDB = () => {
     link.href = URL.createObjectURL(blob);
     link.download = "moneyApp.db";
     link.click();
+    return { success: true };
   };
 
   return {
@@ -217,6 +238,7 @@ export const useDB = () => {
     getIncomeTransactions,
     getExpenseTransactions,
     addTransaction,
+    // editTransaction,
     updateTransaction,
     deleteTransaction,
     clearTransactions,
