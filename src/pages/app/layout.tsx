@@ -1,6 +1,7 @@
 import SidebarNav from "./components/sidebar-nav";
 import { Outlet } from "react-router";
 import { TransactionsProvider } from "./components/app-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const ProtectedLayout = () => {
   return (
@@ -11,6 +12,7 @@ const ProtectedLayout = () => {
           <Outlet />
         </div>
       </div>
+      <Toaster position="top-center" closeButton richColors />
     </TransactionsProvider>
   );
 };

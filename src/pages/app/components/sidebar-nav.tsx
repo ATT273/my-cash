@@ -1,11 +1,6 @@
 import { NavLink } from "react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  CircleUserRound,
-  HandCoins,
-  LayoutDashboard,
-  ChartColumnBig,
-} from "lucide-react";
+import { CircleUserRound, HandCoins, LayoutDashboard, ChartColumnBig, PiggyBank } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const SidebarNav = () => {
@@ -14,31 +9,29 @@ const SidebarNav = () => {
       <div className="flex flex-col gap-2">
         <NavLink to="dashboard">
           {({ isActive }) => (
-            <Button
-              variant={"ghost"}
-              className={isActive ? "bg-gray-200 text-gray-900" : ""}
-            >
+            <Button title="Dashboard" variant={"ghost"} className={isActive ? "bg-gray-200 text-gray-900" : ""}>
               <LayoutDashboard />
             </Button>
           )}
         </NavLink>
         <NavLink to="transaction">
           {({ isActive }) => (
-            <Button
-              variant={"ghost"}
-              className={isActive ? "bg-gray-200 text-gray-900" : ""}
-            >
+            <Button title="Transaction" variant={"ghost"} className={isActive ? "bg-gray-200 text-gray-900" : ""}>
               <HandCoins />
             </Button>
           )}
         </NavLink>
         <NavLink to="report">
           {({ isActive }) => (
-            <Button
-              variant={"ghost"}
-              className={isActive ? "bg-gray-200 text-gray-900" : ""}
-            >
+            <Button title="Report" variant={"ghost"} className={isActive ? "bg-gray-200 text-gray-900" : ""}>
               <ChartColumnBig />
+            </Button>
+          )}
+        </NavLink>
+        <NavLink to="budget-allocation">
+          {({ isActive }) => (
+            <Button title="Budget Allocation" variant={"ghost"} className={isActive ? "bg-gray-200 text-gray-900" : ""}>
+              <PiggyBank />
             </Button>
           )}
         </NavLink>

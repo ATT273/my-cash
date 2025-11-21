@@ -1,4 +1,8 @@
-import type { ITransaction, TransactionInput } from "@/types/transaction.types";
+import type {
+  ITransaction,
+  // IUpdateTransactionInput,
+  TransactionInput,
+} from "@/types/transaction.types";
 import { createContext, useContext } from "react";
 import { useDB } from "@/hooks/use-db.hooks";
 import type { Database, ParamsObject } from "sql.js";
@@ -10,12 +14,12 @@ import type { IQueryParams } from "@/types/db.types";
 interface TransactionsContextValue {
   db: Database | null;
   transactions: ITransaction[];
-  addTransaction: (input: TransactionInput) => Promise<ITransaction>;
-  updateTransaction: (id: string, data: Partial<ITransaction>) => Promise<void>;
-  deleteTransaction: (id: string) => Promise<void>;
-  clearTransactions: () => Promise<void>;
+  addTransaction: (input: TransactionInput) => Promise<{ success: boolean }>;
+  updateTransaction: (id: string, data: Partial<ITransaction>) => Promise<{ success: boolean }>;
+  deleteTransaction: (id: string) => Promise<{ success: boolean }>;
+  clearTransactions: () => Promise<{ success: boolean }>;
   getBalance: () => { income: number; expense: number; net: number };
-  reload: () => Promise<void>;
+  reload: () => Promise<{ success: boolean }>;
   exportDB: () => void;
   getYearlySummary: (start: string, end: string) => ParamsObject[];
   getMonthlySummary: (start: string, end: string) => ParamsObject[];
@@ -23,16 +27,12 @@ interface TransactionsContextValue {
   getExpenseTransactions: (params: IQueryParams) => ITransaction[];
 }
 
-const TransactionsContext = createContext<TransactionsContextValue | undefined>(
-  undefined
-);
+const TransactionsContext = createContext<TransactionsContextValue | undefined>(undefined);
 
 // ==========================
 // Provider
 // ==========================
-export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const {
     db,
     transactions,
@@ -73,9 +73,9 @@ export const TransactionsProvider: React.FC<{ children: React.ReactNode }> = ({
 };
 
 // Hook
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTransactions(): TransactionsContextValue {
   const ctx = useContext(TransactionsContext);
-  if (!ctx)
-    throw new Error("useTransactions must be used within TransactionsProvider");
+  if (!ctx) throw new Error("useTransactions must be used within TransactionsProvider");
   return ctx;
 }
