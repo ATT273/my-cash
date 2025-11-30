@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import TransactionList from "./(list)";
 import NewTransactionForm from "./components/new-transaction-form";
 import { Download } from "lucide-react";
-import { useTransactions } from "../components/app-provider";
+import { useTransactions } from "../components/AppProvider";
 
 const Transaction = () => {
   const { exportDB } = useTransactions();

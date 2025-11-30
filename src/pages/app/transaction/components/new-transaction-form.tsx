@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { formatCurrency } from "@/utils";
 import { useMemo, useState } from "react";
-import { useTransactions } from "@/pages/app/components/app-provider";
+import { useTransactions } from "@/pages/app/components/AppProvider";
 import type { IFormData } from "@/types/transaction.types";
 
 const initData: IFormData = {
@@ -117,9 +117,7 @@ const NewTransactionForm = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectLabel>
-                  {formData.type === "income" ? "Income" : "Expense"}
-                </SelectLabel>
+                <SelectLabel>{formData.type === "income" ? "Income" : "Expense"}</SelectLabel>
                 {category.map((category) => (
                   <SelectItem key={category.value} value={category.value}>
                     <div className="flex items-center gap-2">

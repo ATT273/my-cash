@@ -1,5 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useTransactions } from "../../components/app-provider";
+import { useTransactions } from "../../components/AppProvider";
 import type { TransactionType } from "@/types/transaction.types";
 import { formatCurrency } from "@/utils";
 import { Button } from "@/components/ui/button";

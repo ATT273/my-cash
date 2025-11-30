@@ -1,6 +1,6 @@
-import SidebarNav from "./components/sidebar-nav";
+import SidebarNav from "./components/SideBar";
 import { Outlet } from "react-router";
-import { TransactionsProvider } from "./components/app-provider";
+import { TransactionsProvider } from "./components/AppProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 const ProtectedLayout = () => {
