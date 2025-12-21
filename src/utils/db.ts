@@ -21,6 +21,26 @@ export async function initDB(): Promise<Database> {
   // Otherwise create new DB + schema
   const db = new SQL.Database();
   db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      userName TEXT NOT NULL,
+      password TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      token TEXT,
+      createdAt TEXT,
+      updatedAt TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS wallets (
+      id TEXT PRIMARY KEY,
+      userId TEXT NOT NULL,
+      walletName TEXT NOT NULL,
+      amount REAL DEFAULT 0,
+      createdAt TEXT,
+      updatedAt TEXT,
+      FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS transactions (
       id TEXT PRIMARY KEY,
       type TEXT,

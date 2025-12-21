@@ -12,7 +12,7 @@ import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from "@/constants/category";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
-import { useTransactions } from "@/pages/app/components/app-provider";
+import { useTransactions } from "@/pages/app/components/AppProvider";
 import type { IFormData, ITransaction, IUpdateTransactionInput, TransactionType } from "@/types/transaction.types";
 import { useEffect, useMemo, useState } from "react";
 import { formatCurrency } from "@/utils";

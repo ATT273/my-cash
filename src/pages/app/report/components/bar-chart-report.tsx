@@ -20,10 +20,7 @@ interface Props {
 
 const ChartBarReport = ({ onItemClick }: Props) => {
   const { mainChartData } = useReport();
-  // const handleBarChatClick = (e: MouseHandlerDataParam | null) => {
-  //   console.log("bar click", e);
-  //   onItemClick(e, true);
-  // };
+
   return (
     <>
       <ResponsiveContainer width="100%" height="100%">

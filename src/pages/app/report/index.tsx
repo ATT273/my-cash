@@ -1,21 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Download, Search, X } from "lucide-react";
-import { useTransactions } from "../components/app-provider";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { useTransactions } from "../components/AppProvider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useState } from "react";
 import YearPicker from "@/components/ui/year-picker";
-import {
-  DATE_PICKER_MODE,
-  type ReportType,
-  type IMainChartData,
-} from "@/types/report.types";
+import { DATE_PICKER_MODE, type ReportType, type IMainChartData } from "@/types/report.types";
 
 import { cn } from "@/lib/utils";
 import ChartBarReport from "./components/bar-chart-report";
@@ -24,13 +14,8 @@ import { ReportProvider } from "./components/report-proivider";
 import type { IQueryParams } from "@/types/db.types";
 import type { ITransaction } from "@/types/transaction.types";
 const Transaction = () => {
-  const {
-    exportDB,
-    getYearlySummary,
-    getMonthlySummary,
-    getIncomeTransactions,
-    getExpenseTransactions,
-  } = useTransactions();
+  const { exportDB, getYearlySummary, getMonthlySummary, getIncomeTransactions, getExpenseTransactions } =
+    useTransactions();
 
   const [reportType, setReportType] = useState<ReportType>("year");
   const [startTime, setStartTime] = useState("");
@@ -45,10 +30,7 @@ const Transaction = () => {
   const [expenseReport, setExpenseReport] = useState<ITransaction[]>([]);
 
   const fetchSummary = () => {
-    const result =
-      reportType === "year"
-        ? getYearlySummary(startTime, endTime)
-        : getMonthlySummary(startTime, endTime);
+    const result = reportType === "year" ? getYearlySummary(startTime, endTime) : getMonthlySummary(startTime, endTime);
     setMainChartData(result as unknown as IMainChartData[]);
   };
 
@@ -99,10 +81,7 @@ const Transaction = () => {
           <div className="flex items-end gap-2 bg-white p-2 rounded-lg">
             <div className="flex flex-col gap-2">
               <p className="text-sm font-semibold">Show by</p>
-              <Select
-                value={reportType}
-                onValueChange={(value) => setReportType(value as ReportType)}
-              >
+              <Select value={reportType} onValueChange={(value) => setReportType(value as ReportType)}>
                 <SelectTrigger className="w-[100px]">
                   <SelectValue placeholder="Select report level" />
                 </SelectTrigger>
@@ -142,12 +121,7 @@ const Transaction = () => {
             <div className="flex flex-col gap-4 flex-1">
               <div className="flex flex-col gap-4 flex-1 w-full">
                 <div className="flex h-full gap-2 ">
-                  <div
-                    className={cn(
-                      "h-full ",
-                      isViewingDetails ? "w-1/2" : "w-full"
-                    )}
-                  >
+                  <div className={cn("h-full ", isViewingDetails ? "w-1/2" : "w-full")}>
                     <ChartBarReport
                       viewDetails={isViewingDetails}
                       onItemClick={(e, isViewing) => {
@@ -162,15 +136,9 @@ const Transaction = () => {
                   {isViewingDetails && (
                     <div className="flex flex-col gap-2 flex-1 p-4 border border-gray-300 rounded-lg">
                       <div className="flex justify-between">
-                        <p className="text-lg font-semibold">
-                          Selected year: {selectedItem?.activeLabel}
-                        </p>
+                        <p className="text-lg font-semibold">Selected year: {selectedItem?.activeLabel}</p>
                         {isViewingDetails && (
-                          <Button
-                            variant={"ghost"}
-                            className="text-red-500"
-                            onClick={() => setIsViewingDetails(false)}
-                          >
+                          <Button variant={"ghost"} className="text-red-500" onClick={() => setIsViewingDetails(false)}>
                             <X />
                           </Button>
                         )}
