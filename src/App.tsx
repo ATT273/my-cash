@@ -7,19 +7,12 @@ import Dashboard from "./pages/app/dashboard";
 import Transaction from "./pages/app/transaction";
 import Report from "./pages/app/report";
 import BudgetAllocationPage from "./pages/app/budget-allocation";
+import { DBProvider } from "./components/DBProvider";
 
 const router = createBrowserRouter([
   {
     path: "/",
     Component: Welcome,
-  },
-  {
-    path: "/login",
-    element: <div>Login</div>,
-  },
-  {
-    path: "/register",
-    element: <div>Register</div>,
   },
   {
     path: "/home",
@@ -35,7 +28,11 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <DBProvider>
+      <RouterProvider router={router} />
+    </DBProvider>
+  );
 }
 
 export default App;
