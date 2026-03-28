@@ -1,14 +1,17 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useTransactions } from "../../components/AppProvider";
+import { useGetTransactions } from "@/hooks/transaction/UseGetTransactions";
+import { useDeleteTransaction } from "@/hooks/transaction/UseDeleteTransaction";
 import type { TransactionType } from "@/types/transaction.types";
 import { formatCurrency } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Trash2, Pen } from "lucide-react";
 import EditTransactionForm from "../components/edit-transaction-form";
 import CustomAlertDialog from "@/components/custom-components/AlertDialog";
+import { toast } from "sonner";
 
 const TransactionList = ({ type }: { type: TransactionType }) => {
-  const { transactions, deleteTransaction } = useTransactions();
+  const { data: transactions = [] } = useGetTransactions();
+  const { mutateAsync: deleteTransaction } = useDeleteTransaction();
   const list = transactions.filter((t) => t.type === type);
 
   return (
@@ -39,7 +42,18 @@ const TransactionList = ({ type }: { type: TransactionType }) => {
                   <CustomAlertDialog
                     title={"Delete Transaction"}
                     description={"Are you sure you want to delete this transaction?"}
-                    onConfirm={() => deleteTransaction(t.id)}
+                    onConfirm={async () => {
+                      try {
+                        const result = await deleteTransaction(t.id);
+                        if (result.success) {
+                          toast.success("Transaction deleted");
+                        } else {
+                          toast.error("Failed to delete transaction");
+                        }
+                      } catch {
+                        toast.error("Failed to delete transaction");
+                      }
+                    }}
                   >
                     <Button variant="ghost">
                       <Trash2 className="text-red-500" />

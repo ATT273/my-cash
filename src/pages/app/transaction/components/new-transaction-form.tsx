@@ -15,8 +15,10 @@ import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { formatCurrency } from "@/utils";
 import { useMemo, useState } from "react";
-import { useTransactions } from "@/pages/app/components/AppProvider";
+import { useCreateTransaction } from "@/hooks/transaction/UseCreateTransaction";
 import type { IFormData } from "@/types/transaction.types";
+import { useGetUserWallets } from "@/hooks/wallet/UseGetUserWallets";
+import { toast } from "sonner";
 
 const initData: IFormData = {
   type: "income",
@@ -28,8 +30,14 @@ const initData: IFormData = {
 
 const NewTransactionForm = () => {
   const [formData, setFormData] = useState(initData);
-  const { addTransaction } = useTransactions();
-
+  const { mutateAsync: addTransaction } = useCreateTransaction();
+  const {data} = useGetUserWallets(); 
+  const walletId = useMemo(() => {
+    if(!data) return "";
+    if(data?.length > 0) {
+      return data[0].id;
+    }
+  }, [data])
   const category = useMemo(() => {
     if (formData.type === "income") {
       return INCOME_CATEGORIES;
@@ -40,16 +48,28 @@ const NewTransactionForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if(!walletId) {
+      toast.error("No wallet found");
+      return;
+    }
     const _data = {
+      walletId,
       type: formData.type,
       amount: Number(formData.amount),
       category: formData.category,
       note: formData.note,
       date: formData.date,
     };
-    const result = await addTransaction(_data);
-    if (result.success) {
-      setFormData(initData);
+    try {
+      const  result = await addTransaction(_data);
+      if(result.success) {
+        toast.success("Transaction has been added");
+        setFormData(initData);
+      } else {
+        toast.error("There was an error occured while adding transaction")
+      }
+    } catch {
+      // error handled by mutation
     }
   };
 

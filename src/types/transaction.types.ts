@@ -1,6 +1,7 @@
 export type TransactionType = "income" | "expense";
 export interface ITransaction {
   id: string;
+  walletId: string;
   type: TransactionType;
   amount: number;
   category: string;
@@ -30,5 +31,4 @@ export interface IUpdateTransactionInput {
   category: string;
   note: string;
   date: string;
-  createdAt: string;
 }
