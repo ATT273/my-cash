@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { useDB } from "@/components/DBProvider";
+import { signIn } from "@/services/auth.service";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 
@@ -10,7 +10,6 @@ const SigninForm = ({ openSignupForm }: { openSignupForm: () => void }) => {
     userName: "",
     password: "",
   });
-  const { signIn } = useDB();
   const navigate = useNavigate();
   const handleSignin = async () => {
     if (formData.userName.trim() === "" || formData.password.trim() === "") {

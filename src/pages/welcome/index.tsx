@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { NavLink } from "react-router";
 // import DBConfigMenu from "../app/components/DBConfigMenu";
 import { useEffect, useState } from "react";
-import { useDB } from "@/components/DBProvider";
+import * as authService from "@/services/auth.service";
 import type { ILocalUser } from "@/types/user.types";
 import SigninForm from "./components/SigninForm";
 import SignupForm from "./components/SignupForm";
@@ -12,15 +12,11 @@ const Welcome = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [openSigninForm, setOpenSigninForm] = useState(true);
   const [localUser, setLocalUser] = useState<ILocalUser | null>(null);
-  const { db, getIsAuthed, getCurrentUser } = useDB();
 
   const checkUserAuth = async () => {
-    // Wait for database to initialize
-    if (!db) return;
-
-    const result = await getIsAuthed();
+    const result = await authService.getIsAuthed();
     if (result) {
-      const user = getCurrentUser();
+      const user = authService.getCurrentUser();
       setLocalUser(user);
     }
     setIsLoggedIn(result);
@@ -28,7 +24,7 @@ const Welcome = () => {
 
   useEffect(() => {
     checkUserAuth();
-  }, [db]);
+  }, []);
 
   return (
     <div>

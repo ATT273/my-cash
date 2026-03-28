@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useDB } from "@/components/DBProvider";
+import { register } from "@/services/auth.service";
 
 const SignupForm = ({ openSigninForm }: { openSigninForm: () => void }) => {
   const [formData, setFormData] = useState({
@@ -10,14 +10,13 @@ const SignupForm = ({ openSigninForm }: { openSigninForm: () => void }) => {
     password: "",
     email: "",
   });
-  const { createUser } = useDB();
   const handleSignup = async () => {
     if (formData.userName.trim() === "" || formData.password === "" || formData.email.trim() === "") {
       toast.error("Please fill all fields in form");
       return;
     }
 
-    const result = await createUser(formData);
+    const result = await register(formData);
     if (!result.success) {
       toast.error("There is an error while creating your account! Please try again");
       return;
