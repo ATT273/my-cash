@@ -1,3 +1,8 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
 # Logs
 logs
 *.log
@@ -25,3 +30,4 @@ dist-ssr
 
 # AI Agents
 CLAUDE.md
+/generated/prisma

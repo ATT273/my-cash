@@ -12,7 +12,7 @@ import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from "@/constants/category";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
-import { useTransactions } from "@/pages/app/components/AppProvider";
+import { useUpdateTransaction } from "@/hooks/transaction/UseUpdateTransaction";
 import type { IFormData, ITransaction, IUpdateTransactionInput, TransactionType } from "@/types/transaction.types";
 import { useEffect, useMemo, useState } from "react";
 import { formatCurrency } from "@/utils";
@@ -25,7 +25,6 @@ const initData: IUpdateTransactionInput = {
   amount: "",
   note: "",
   date: "",
-  createdAt: "",
 };
 
 interface EditTransactionFormProps {
@@ -36,7 +35,7 @@ interface EditTransactionFormProps {
 const EditTransactionForm = ({ item, type, children }: EditTransactionFormProps) => {
   const [formData, setFormData] = useState<IUpdateTransactionInput>(initData);
   const [open, setOpen] = useState(false);
-  const { updateTransaction } = useTransactions();
+  const { mutateAsync: updateTransaction } = useUpdateTransaction();
 
   useEffect(() => {
     if (item.id) {
@@ -47,7 +46,6 @@ const EditTransactionForm = ({ item, type, children }: EditTransactionFormProps)
         amount: item.amount.toString(),
         note: item.note || "",
         date: item.date,
-        createdAt: item.createdAt,
       });
     }
   }, [item]);
@@ -58,7 +56,7 @@ const EditTransactionForm = ({ item, type, children }: EditTransactionFormProps)
     } else {
       return EXPENSE_CATEGORIES;
     }
-  }, [formData.type]);
+  }, [type]);
 
   const handleSubmit = async () => {
     const data = {
@@ -68,10 +66,16 @@ const EditTransactionForm = ({ item, type, children }: EditTransactionFormProps)
       note: formData.note,
       date: formData.date,
     };
-    const result = await updateTransaction(formData.id, data);
-    if (result.success) {
-      setOpen(false);
-      toast.success("Transaction has been updated");
+    try {
+      const result = await updateTransaction({ id: formData.id, data });
+      if (result.success) {
+        setOpen(false);
+        toast.success("Transaction has been updated");
+      } else {
+        toast.error("Failed to update transaction");
+      }
+    } catch {
+      toast.error("Failed to update transaction");
     }
   };
 

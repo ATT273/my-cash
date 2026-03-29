@@ -1,70 +1,53 @@
 import { Button } from "@/components/ui/button";
-import { Download, Search, X } from "lucide-react";
-import { useTransactions } from "../components/AppProvider";
+import { Search, X } from "lucide-react";
+import { useGetYearlySummary } from "@/hooks/transaction/UseGetYearlySummary";
+import { useGetMonthlySummary } from "@/hooks/transaction/UseGetMonthlySummary";
+import { useGetTransactions } from "@/hooks/transaction/UseGetTransactions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import YearPicker from "@/components/ui/year-picker";
-import { DATE_PICKER_MODE, type ReportType, type IMainChartData } from "@/types/report.types";
-
+import { DATE_PICKER_MODE, type ReportType } from "@/types/report.types";
 import { cn } from "@/lib/utils";
 import ChartBarReport from "./components/bar-chart-report";
 import PieChartReport from "./components/pie-chart-report";
 import { ReportProvider } from "./components/report-proivider";
-import type { IQueryParams } from "@/types/db.types";
-import type { ITransaction } from "@/types/transaction.types";
-const Transaction = () => {
-  const { exportDB, getYearlySummary, getMonthlySummary, getIncomeTransactions, getExpenseTransactions } =
-    useTransactions();
+import WalletButton from "../wallet/components/WalletButton";
 
+const Transaction = () => {
   const [reportType, setReportType] = useState<ReportType>("year");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [searchedStart, setSearchedStart] = useState("");
+  const [searchedEnd, setSearchedEnd] = useState("");
   const [isViewingDetails, setIsViewingDetails] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{
     activeLabel: string;
     activeIndex: string;
   } | null>(null);
-  const [mainChartData, setMainChartData] = useState<IMainChartData[]>([]);
-  const [incomeReport, setIncomeReport] = useState<ITransaction[]>([]);
-  const [expenseReport, setExpenseReport] = useState<ITransaction[]>([]);
 
-  const fetchSummary = () => {
-    const result = reportType === "year" ? getYearlySummary(startTime, endTime) : getMonthlySummary(startTime, endTime);
-    setMainChartData(result as unknown as IMainChartData[]);
-  };
+  const { data: yearlySummary = [] } = useGetYearlySummary(searchedStart, searchedEnd);
+  const { data: monthlySummary = [] } = useGetMonthlySummary(searchedStart, searchedEnd);
+  const { data: allTransactions = [] } = useGetTransactions();
 
-  const fetchIncomeReport = ({ type, from, to }: IQueryParams) => {
-    const result = getIncomeTransactions({ from, to, type });
-    // const formattedResult = result.map((item) => {
-    //   return {
-    //     ...item,
-    //     amount: formatCurrency(item.amount),
-    //   };
-    // });
-    setIncomeReport(result as unknown as ITransaction[]);
-  };
+  const mainChartData = reportType === "year" ? yearlySummary : monthlySummary;
 
-  const fetchExpenseReport = ({ type, from, to }: IQueryParams) => {
-    const result = getExpenseTransactions({ from, to, type });
-    // const formattedResult = result.map((item) => {
-    //   return {
-    //     ...item,
-    //     amount: formatCurrency(item.amount),
-    //   };
-    // });
-    setExpenseReport(result as unknown as ITransaction[]);
-  };
+  const incomeReport = useMemo(() => {
+    if (!selectedItem?.activeLabel) return [];
+    const from = `${selectedItem.activeLabel}-01-01`;
+    const to = `${selectedItem.activeLabel}-12-31`;
+    return allTransactions.filter((t) => t.type === "income" && t.date >= from && t.date <= to);
+  }, [selectedItem, allTransactions]);
+
+  const expenseReport = useMemo(() => {
+    if (!selectedItem?.activeLabel) return [];
+    const from = `${selectedItem.activeLabel}-01-01`;
+    const to = `${selectedItem.activeLabel}-12-31`;
+    return allTransactions.filter((t) => t.type === "expense" && t.date >= from && t.date <= to);
+  }, [selectedItem, allTransactions]);
 
   useEffect(() => {
-    if (selectedItem?.activeLabel) {
-      const timeParams = {
-        from: `${selectedItem.activeLabel}-01-01`,
-        to: `${selectedItem.activeLabel}-12-31`,
-      };
-      fetchIncomeReport({ ...timeParams, type: "income" });
-      fetchExpenseReport({ ...timeParams, type: "expense" });
-    }
+    if (!selectedItem?.activeLabel) setIsViewingDetails(false);
   }, [selectedItem]);
 
   return (
@@ -76,7 +59,10 @@ const Transaction = () => {
       expenseReport={expenseReport}
     >
       <div className="flex flex-col h-full gap-4">
-        <p className="text-2xl font-bold">Reports</p>
+        <div className="flex items-center justify-between">
+          <p className="text-2xl font-bold">Reports</p>
+          <WalletButton />
+        </div>
         <div className="flex flex-col w-full h-full gap-4">
           <div className="flex items-end gap-2 bg-white p-2 rounded-lg">
             <div className="flex flex-col gap-2">
@@ -105,7 +91,7 @@ const Transaction = () => {
               minTime={startTime}
               onValueChange={(value) => setEndTime(value)}
             />
-            <Button onClick={fetchSummary}>
+            <Button onClick={() => { setSearchedStart(startTime); setSearchedEnd(endTime); }}>
               <Search />
             </Button>
           </div>
@@ -114,9 +100,6 @@ const Transaction = () => {
               <p className="text-2xl font-bold">
                 Period of {startTime} - {endTime}
               </p>
-              <Button className="bg-green-500" onClick={() => exportDB()}>
-                <Download />
-              </Button>
             </div>
             <div className="flex flex-col gap-4 flex-1">
               <div className="flex flex-col gap-4 flex-1 w-full">

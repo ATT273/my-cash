@@ -1,13 +1,16 @@
 import "./App.css";
 import { createBrowserRouter } from "react-router";
 import { RouterProvider } from "react-router/dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Welcome from "./pages/welcome";
 import ProtectedLayout from "./pages/app/layout";
 import Dashboard from "./pages/app/dashboard";
 import Transaction from "./pages/app/transaction";
 import Report from "./pages/app/report";
 import BudgetAllocationPage from "./pages/app/budget-allocation";
-import { DBProvider } from "./components/DBProvider";
+import WalletPage from "./pages/app/wallet";
+
+const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
   {
@@ -23,15 +26,16 @@ const router = createBrowserRouter([
       { path: "transaction", Component: Transaction },
       { path: "report", Component: Report },
       { path: "budget-allocation", Component: BudgetAllocationPage },
+      { path: "wallet", Component: WalletPage },
     ],
   },
 ]);
 
 function App() {
   return (
-    <DBProvider>
+    <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
-    </DBProvider>
+    </QueryClientProvider>
   );
 }
 
