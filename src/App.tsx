@@ -8,6 +8,7 @@ import Dashboard from "./pages/app/dashboard";
 import Transaction from "./pages/app/transaction";
 import Report from "./pages/app/report";
 import BudgetAllocationPage from "./pages/app/budget-allocation";
+import WalletPage from "./pages/app/wallet";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
       { path: "transaction", Component: Transaction },
       { path: "report", Component: Report },
       { path: "budget-allocation", Component: BudgetAllocationPage },
+      { path: "wallet", Component: WalletPage },
     ],
   },
 ]);

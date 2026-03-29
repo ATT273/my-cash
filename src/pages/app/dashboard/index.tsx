@@ -1,10 +1,14 @@
 import { ArrowBigDownDash, ArrowBigUpDash } from "lucide-react";
 import Wallet from "../components/Wallet";
+import WalletButton from "../wallet/components/WalletButton";
 
 const Dashboard = () => {
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-2xl font-bold">Dashboard</p>
+      <div className="flex items-center justify-between">
+        <p className="text-2xl font-bold">Dashboard</p>
+        <WalletButton />
+      </div>
       <div>
         <Wallet />
         <div className="flex gap-4">

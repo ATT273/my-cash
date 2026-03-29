@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import ChartBarReport from "./components/bar-chart-report";
 import PieChartReport from "./components/pie-chart-report";
 import { ReportProvider } from "./components/report-proivider";
+import WalletButton from "../wallet/components/WalletButton";
 
 const Transaction = () => {
   const [reportType, setReportType] = useState<ReportType>("year");
@@ -58,7 +59,10 @@ const Transaction = () => {
       expenseReport={expenseReport}
     >
       <div className="flex flex-col h-full gap-4">
-        <p className="text-2xl font-bold">Reports</p>
+        <div className="flex items-center justify-between">
+          <p className="text-2xl font-bold">Reports</p>
+          <WalletButton />
+        </div>
         <div className="flex flex-col w-full h-full gap-4">
           <div className="flex items-end gap-2 bg-white p-2 rounded-lg">
             <div className="flex flex-col gap-2">
