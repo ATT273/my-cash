@@ -1,10 +1,14 @@
 import TransactionList from "./(list)";
 import NewTransactionForm from "./components/new-transaction-form";
+import WalletButton from "../wallet/components/WalletButton";
 
 const Transaction = () => {
   return (
     <div className="flex flex-col h-full gap-4">
-      <p className="text-2xl font-bold">Transaction</p>
+      <div className="flex items-center justify-between">
+        <p className="text-2xl font-bold">Transaction</p>
+        <WalletButton />
+      </div>
       <div className="w-full h-full flex gap-4">
         <div className="flex flex-col gap-4 w-[500px] h-full p-4 bg-white rounded-lg">
           <NewTransactionForm />

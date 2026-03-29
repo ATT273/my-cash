@@ -17,8 +17,9 @@ import { formatCurrency } from "@/utils";
 import { useMemo, useState } from "react";
 import { useCreateTransaction } from "@/hooks/transaction/UseCreateTransaction";
 import type { IFormData } from "@/types/transaction.types";
-import { useGetUserWallets } from "@/hooks/wallet/UseGetUserWallets";
+import { useCurrentWallet } from "@/hooks/wallet/UseCurrentWallet";
 import { toast } from "sonner";
+
 
 const initData: IFormData = {
   type: "income",
@@ -31,13 +32,7 @@ const initData: IFormData = {
 const NewTransactionForm = () => {
   const [formData, setFormData] = useState(initData);
   const { mutateAsync: addTransaction } = useCreateTransaction();
-  const {data} = useGetUserWallets(); 
-  const walletId = useMemo(() => {
-    if(!data) return "";
-    if(data?.length > 0) {
-      return data[0].id;
-    }
-  }, [data])
+  const { currentWalletId: walletId } = useCurrentWallet();
   const category = useMemo(() => {
     if (formData.type === "income") {
       return INCOME_CATEGORIES;
