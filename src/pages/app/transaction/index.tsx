@@ -1,8 +1,14 @@
 import TransactionList from "./(list)";
 import NewTransactionForm from "./components/new-transaction-form";
 import WalletButton from "../wallet/components/WalletButton";
+import { useCurrentWallet } from "@/hooks/wallet/UseCurrentWallet";
+import { useGetBudgetsByWallet } from "@/hooks/budget/UseGetBudgetsByWallet";
 
 const Transaction = () => {
+  const { currentWalletId } = useCurrentWallet();
+  const { data: budgets = [] } = useGetBudgetsByWallet(currentWalletId);
+  const activeBudgetId = budgets.find((b) => b.status)?.id;
+
   return (
     <div className="flex flex-col h-full gap-4">
       <div className="flex items-center justify-between">
@@ -13,18 +19,14 @@ const Transaction = () => {
         <div className="flex flex-col gap-4 w-[500px] h-full p-4 bg-white rounded-lg">
           <NewTransactionForm />
         </div>
-        <div className="flex flex-col gap-4 h-full p-4 grow bg-white rounded-lg">
-          <div className="flex items-center justify-between">
-            <p className="text-2xl font-bold">List of Transactions</p>
-          </div>
-          <div className="flex flex-col gap-4 flex-1">
-            <div className="flex-1">
-              <p className="text-xl font-bold text-green-500">Income</p>
-              <TransactionList type="income" />
+        <div className="flex flex-col gap-4 h-full p-4 grow bg-white rounded-lg overflow-y-auto">
+          <p className="text-2xl font-bold">List of Transactions</p>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <TransactionList type="income" budgets={budgets} activeBudgetId={activeBudgetId} />
             </div>
-            <div className="flex-1">
-              <p className="text-xl font-bold text-red-500">Expense</p>
-              <TransactionList type="expense" />
+            <div className="flex flex-col gap-2">
+              <TransactionList type="expense" budgets={budgets} activeBudgetId={activeBudgetId} />
             </div>
           </div>
         </div>

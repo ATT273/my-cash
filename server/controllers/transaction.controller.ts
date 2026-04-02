@@ -27,13 +27,14 @@ export const getYearlySummary = async (req: Request, res: Response) => {
 
 export const searchTransactions = async (req: Request, res: Response) => {
   try {
-    const { type, from, to, category, walletId } = req.query as Record<string, string>;
+    const { type, from, to, category, walletId, budgetId } = req.query as Record<string, string>;
     const transactions = await transactionRepo.findMany({
       type: type as "income" | "expense",
       from,
       to,
       category,
       walletId,
+      budgetId,
     });
     res.json(transactions);
   } catch (error) {
@@ -64,7 +65,7 @@ export const getById = async (req: Request, res: Response) => {
 
 export const create = async (req: Request, res: Response) => {
   try {
-    const { date, walletId, ...rest } = req.body;
+    const { date, walletId, jarAllocations, ...rest } = req.body;
     const parsedDate = new Date(date);
     if (!date || isNaN(parsedDate.getTime())) {
       res.status(400).json({ success: false, error: "Invalid or missing date" });
@@ -72,19 +73,72 @@ export const create = async (req: Request, res: Response) => {
     }
 
     const transaction = await prisma.$transaction(async (tx) => {
-      const created = await tx.transaction.create({
-        data: { ...rest, date: parsedDate, ...(walletId != null && { walletId }) },
-      });
-
       if (walletId) {
+        const activeBudget = await tx.budget.findFirst({
+          where: { walletId, status: true },
+          include: { jars: { include: { allocation: true } } },
+        });
+
+        const created = await tx.transaction.create({
+          data: {
+            ...rest,
+            date: parsedDate,
+            walletId,
+            ...(activeBudget && { budgetId: activeBudget.id }),
+          },
+        });
+
         const amountDelta = created.type === "income" ? created.amount : -created.amount;
         await tx.wallet.update({
           where: { id: walletId },
           data: { amount: { increment: amountDelta } },
         });
+
+        if (created.type === "income") {
+          if (activeBudget) {
+            if (activeBudget.type === "zero_based" && Array.isArray(jarAllocations)) {
+              // Zero-based: use manually entered amounts from the client
+              for (const entry of jarAllocations as { jarId: string; amount: number }[]) {
+                const jar = activeBudget.jars.find((j) => j.id === entry.jarId);
+                if (jar?.allocation) {
+                  await tx.budgetAllocation.update({
+                    where: { id: jar.allocation.id },
+                    data: { amount: { increment: entry.amount } },
+                  });
+                }
+              }
+            } else {
+              // Percentage-based (six_jar / three_jar)
+              for (const jar of activeBudget.jars) {
+                if (jar.allocation && jar.allocation.percentage != null) {
+                  const allocatedAmount = created.amount * (jar.allocation.percentage / 100);
+                  await tx.budgetAllocation.update({
+                    where: { id: jar.allocation.id },
+                    data: { amount: { increment: allocatedAmount } },
+                  });
+                }
+              }
+            }
+          }
+        } else if (created.type === "expense" && created.jarId) {
+          // Deduct expense amount from the selected jar
+          const allocation = await tx.budgetAllocation.findUnique({
+            where: { jarId: created.jarId },
+          });
+          if (allocation) {
+            await tx.budgetAllocation.update({
+              where: { id: allocation.id },
+              data: { amount: { decrement: created.amount } },
+            });
+          }
+        }
+
+        return created;
       }
 
-      return created;
+      return tx.transaction.create({
+        data: { ...rest, date: parsedDate },
+      });
     });
 
     res.json({ success: true, transaction });
@@ -154,6 +208,56 @@ export const remove = async (req: Request, res: Response) => {
           where: { id: existing.walletId },
           data: { amount: { increment: amountDelta } },
         });
+
+        if (existing.type === "income") {
+          const activeBudget = await tx.budget.findFirst({
+            where: { walletId: existing.walletId, status: true },
+            include: { jars: { include: { allocation: true } } },
+          });
+
+          if (activeBudget) {
+            if (activeBudget.type === "zero_based") {
+              // Reverse proportionally based on current jar amounts
+              const totalJarAmount = activeBudget.jars.reduce(
+                (sum, j) => sum + (j.allocation?.amount ?? 0),
+                0
+              );
+              if (totalJarAmount > 0) {
+                for (const jar of activeBudget.jars) {
+                  if (jar.allocation && jar.allocation.amount > 0) {
+                    const proportion = jar.allocation.amount / totalJarAmount;
+                    const reverseAmount = existing.amount * proportion;
+                    await tx.budgetAllocation.update({
+                      where: { id: jar.allocation.id },
+                      data: { amount: { decrement: reverseAmount } },
+                    });
+                  }
+                }
+              }
+            } else {
+              for (const jar of activeBudget.jars) {
+                if (jar.allocation && jar.allocation.percentage != null) {
+                  const allocatedAmount = existing.amount * (jar.allocation.percentage / 100);
+                  await tx.budgetAllocation.update({
+                    where: { id: jar.allocation.id },
+                    data: { amount: { decrement: allocatedAmount } },
+                  });
+                }
+              }
+            }
+          }
+        } else if (existing.type === "expense" && existing.jarId) {
+          // Restore expense amount back to the jar
+          const allocation = await tx.budgetAllocation.findUnique({
+            where: { jarId: existing.jarId },
+          });
+          if (allocation) {
+            await tx.budgetAllocation.update({
+              where: { id: allocation.id },
+              data: { amount: { increment: existing.amount } },
+            });
+          }
+        }
       }
     });
 

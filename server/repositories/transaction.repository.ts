@@ -9,6 +9,7 @@ export type TransactionCreateInput = {
   note?: string;
   date: Date;
   walletId?: string | null;
+  budgetId?: string | null;
 };
 
 export type TransactionUpdateInput = Partial<{
@@ -25,6 +26,7 @@ export type TransactionQueryParams = {
   to?: string;
   category?: string;
   walletId?: string;
+  budgetId?: string;
 };
 
 export const findAll = () =>
@@ -37,7 +39,7 @@ export const findMany = (params: TransactionQueryParams) =>
   prisma.transaction.findMany({
     where: {
       ...(params.type && { type: params.type }),
-      ...(params.walletId && { walletId: params.walletId }),
+      ...(params.budgetId ? { budgetId: params.budgetId } : params.walletId ? { walletId: params.walletId } : {}),
       ...(params.category && { category: params.category }),
       ...((params.from || params.to) && {
         date: {

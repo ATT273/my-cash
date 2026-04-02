@@ -12,6 +12,7 @@ import { useCurrentWallet } from "@/hooks/wallet/UseCurrentWallet";
 import { useGetUserWallets } from "@/hooks/wallet/UseGetUserWallets";
 import type { IWallet } from "@/types/wallet.types";
 import { formatCurrency } from "@/utils";
+import { BUDGET_TYPE_LABELS } from "@/constants/allocation.constants";
 
 const WalletButton = () => {
   const [open, setOpen] = useState(false);
@@ -50,25 +51,35 @@ const WalletButton = () => {
               No wallets available. Create one in the Wallet page.
             </p>
           ) : (
-            wallets.map((wallet: IWallet) => (
-              <button
-                key={wallet.id}
-                className={`flex items-center justify-between w-full p-3 rounded-lg border text-left transition-colors ${
-                  wallet.id === currentWalletId
-                    ? "border-green-400 bg-green-50"
-                    : "border-gray-200 hover:border-gray-400 hover:bg-gray-50"
-                }`}
-                onClick={() => handleSelect(wallet.id)}
-              >
-                <div className="flex flex-col gap-0.5">
-                  <span className="font-semibold">{wallet.walletName}</span>
-                  <span className="text-sm text-gray-500">{formatCurrency(wallet.amount)}</span>
-                </div>
-                {wallet.id === currentWalletId && (
-                  <CheckCircle2 size={20} className="text-green-500 shrink-0" />
-                )}
-              </button>
-            ))
+            wallets.map((wallet: IWallet) => {
+              const activeBudget = wallet.budgets?.[0];
+              return (
+                <button
+                  key={wallet.id}
+                  className={`flex items-center justify-between w-full p-3 rounded-lg border text-left transition-colors ${
+                    wallet.id === currentWalletId
+                      ? "border-green-400 bg-green-50"
+                      : "border-gray-200 hover:border-gray-400 hover:bg-gray-50"
+                  }`}
+                  onClick={() => handleSelect(wallet.id)}
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-semibold">{wallet.walletName}</span>
+                    <span className="text-sm text-gray-500">{formatCurrency(wallet.amount)}</span>
+                    {activeBudget ? (
+                      <span className="text-xs text-blue-500 font-medium">
+                        {BUDGET_TYPE_LABELS[activeBudget.type] ?? activeBudget.type}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400">No budget</span>
+                    )}
+                  </div>
+                  {wallet.id === currentWalletId && (
+                    <CheckCircle2 size={20} className="text-green-500 shrink-0" />
+                  )}
+                </button>
+              );
+            })
           )}
         </div>
       </DialogContent>
