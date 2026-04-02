@@ -11,7 +11,7 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   userName  String
   password  String
   email     String   @unique
@@ -20,10 +20,11 @@ model User {
   updatedAt DateTime @updatedAt
 
   wallets Wallet[]
+  budgets Budget[]
 }
 
 model Wallet {
-  id         String   @id @default(cuid())
+  id         String   @id @default(uuid())
   userId     String
   walletName String
   amount     Float    @default(0)
@@ -32,11 +33,14 @@ model Wallet {
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  budgets      Budget[]
 }
 
 model Transaction {
-  id        String          @id @default(cuid())
+  id        String          @id @default(uuid())
   walletId  String?
+  jarId     String?
+  budgetId  String?
   type      TransactionType
   amount    Float
   category  String
@@ -46,9 +50,57 @@ model Transaction {
   updatedAt DateTime        @updatedAt
 
   wallet Wallet? @relation(fields: [walletId], references: [id], onDelete: SetNull)
+  jar    Jar?    @relation(fields: [jarId], references: [id], onDelete: SetNull)
+  budget Budget? @relation(fields: [budgetId], references: [id], onDelete: SetNull)
+}
+
+model Budget {
+  id        String     @id @default(uuid())
+  userId    String
+  walletId  String
+  type      BudgetType
+  status    Boolean    @default(true)
+  startedAt DateTime
+  endedAt   DateTime?
+
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet       Wallet             @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  jars         Jar[]
+  allocations  BudgetAllocation[]
+  transactions Transaction[]
+}
+
+model Jar {
+  id        String   @id @default(uuid())
+  budgetId  String
+  name      String
+  icon      String
+  color     String
+  createdAt DateTime @default(now())
+
+  budget       Budget            @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  allocation   BudgetAllocation?
+  transactions Transaction[]
+}
+
+model BudgetAllocation {
+  id         String  @id @default(uuid())
+  budgetId   String
+  jarId      String  @unique
+  amount     Float
+  percentage Float?
+
+  budget Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  jar    Jar    @relation(fields: [jarId], references: [id], onDelete: Cascade)
 }
 
 enum TransactionType {
   income
   expense
+}
+
+enum BudgetType {
+  six_jar
+  three_jar
+  zero_based
 }

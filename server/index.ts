@@ -5,6 +5,7 @@ import authRoutes from "./routes/auth.routes";
 import usersRoutes from "./routes/users.routes";
 import walletsRoutes from "./routes/wallets.routes";
 import transactionsRoutes from "./routes/transactions.routes";
+import budgetRoutes from "./routes/budget.routes";
 
 const app = express();
 const PORT = process.env.PORT ?? 3001;
@@ -16,6 +17,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/wallets", walletsRoutes);
 app.use("/api/transactions", transactionsRoutes);
+app.use("/api/budgets", budgetRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

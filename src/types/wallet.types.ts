@@ -1,3 +1,9 @@
+export interface IWalletBudgetSummary {
+  id: string;
+  type: string;
+  status: boolean;
+}
+
 export interface IWallet {
   id: string;
   userId: string;
@@ -5,6 +11,7 @@ export interface IWallet {
   amount: number;
   createdAt: string;
   updatedAt: string;
+  budgets?: IWalletBudgetSummary[];
 }
 
-export type WalletInput = Omit<IWallet, "id" | "createdAt" | "updatedAt">;
+export type WalletInput = Omit<IWallet, "id" | "createdAt" | "updatedAt" | "budgets">;

@@ -1,57 +1,102 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ZeroBasedMethodForm from "./ZeroBasedMethodForm";
-import type { JarFormData } from "@/types/budget-allocation.types";
+import type { JarFormData, CreateBudgetJarInput } from "@/types/budget-allocation.types";
 import { ICON_LIST } from "@/constants/icon.constants";
-import { CircleQuestionMark } from "lucide-react";
+import { CircleQuestionMark, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { formatCurrency } from "@/utils";
 
-const ZeroBasedMethod = () => {
-  const [jarArray, setJarArray] = useState<JarFormData[]>([]);
+interface ZeroBasedMethodProps {
+  walletBalance: number;
+  onSubmit: (jars: CreateBudgetJarInput[]) => void;
+  isLoading?: boolean;
+}
 
-  useEffect(() => {
-    const savedSettings = localStorage.getItem("my_cash_zero_based");
-    if (savedSettings) {
-      const parsedSettings = JSON.parse(savedSettings);
-      setJarArray(parsedSettings);
-    } else {
-      setJarArray([]);
-    }
-  }, []);
+interface JarWithAmount extends JarFormData {
+  amount: number;
+}
+
+const ZeroBasedMethod = ({ walletBalance, onSubmit, isLoading }: ZeroBasedMethodProps) => {
+  const [jarArray, setJarArray] = useState<JarWithAmount[]>([]);
+  const [error, setError] = useState("");
 
   const handleFormSubmit = (newJar: JarFormData) => {
-    setJarArray((prev) => [...prev, newJar]);
+    setJarArray((prev) => [...prev, { ...newJar, amount: 0 }]);
   };
 
-  const onSave = () => {
-    localStorage.setItem("my_cash_zero_based", JSON.stringify(jarArray));
+  const handleAmountChange = (index: number, value: string) => {
+    const numeric = value.replace(/[^0-9]/g, "");
+    const amount = numeric === "" ? 0 : parseInt(numeric, 10);
+    setJarArray((prev) => prev.map((jar, i) => (i === index ? { ...jar, amount } : jar)));
   };
+
+  const handleRemove = (index: number) => {
+    setJarArray((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const totalAllocated = jarArray.reduce((acc, jar) => acc + jar.amount, 0);
+
+  const onSave = () => {
+    if (jarArray.length === 0) {
+      setError("Add at least one jar");
+      return;
+    }
+    setError("");
+    const jars: CreateBudgetJarInput[] = jarArray.map((jar) => ({
+      name: jar.name,
+      icon: jar.icon,
+      color: jar.color,
+      percentage: null,
+      amount: jar.amount,
+    }));
+    onSubmit(jars);
+  };
+
   return (
-    <div>
+    <div className="flex flex-col gap-4">
+      <div className="text-sm text-gray-500 flex justify-between">
+        <span>Balance: <span className="font-semibold text-gray-700">{formatCurrency(walletBalance)}</span></span>
+        <span>Allocated: <span className={`font-semibold ${totalAllocated > walletBalance ? "text-red-500" : "text-green-600"}`}>{formatCurrency(totalAllocated)}</span></span>
+      </div>
       <ZeroBasedMethodForm onSubmit={handleFormSubmit} />
-      <div className="flex flex-col gap-4 py-4">
-        <p className="text-xl font-semibold">Jar list</p>
+      <div className="flex flex-col gap-3">
         {jarArray.length > 0 ? (
           jarArray.map((jar, index) => {
             const Icon = ICON_LIST.find((icon) => icon.key === jar.icon)?.icon;
             return (
-              <div key={`${jar.name}-${index}`} className={`flex flex-col gap-1 p-2 rounded-lg ${jar.color}`}>
-                <div className="flex justify-between items-center gap-2 text-xl font-bold text-white">
-                  {Icon ? <Icon className="text-white" /> : <CircleQuestionMark className="text-white" />}
+              <div key={`${jar.name}-${index}`} className={`flex items-center gap-2 p-2 rounded-lg ${jar.color}`}>
+                <div className="text-white">
+                  {Icon ? <Icon /> : <CircleQuestionMark />}
                 </div>
-
-                <p className="text-white text-3xl font-bold text-right cursor-pointer">
-                  <span className="capitalize">{jar.name}</span>
-                </p>
+                <p className="text-white font-bold capitalize flex-1">{jar.name}</p>
+                <Input
+                  className="w-[120px] text-right !font-semibold bg-white/20 border-white/40 text-white placeholder:text-white/60"
+                  value={jar.amount === 0 ? "" : formatCurrency(jar.amount)}
+                  placeholder="0"
+                  onChange={(e) => handleAmountChange(index, e.target.value)}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20 hover:text-white"
+                  onClick={() => handleRemove(index)}
+                >
+                  <Trash2 size={16} />
+                </Button>
               </div>
             );
           })
         ) : (
-          <div className="text-center text-zinc-400 p-4">No jar added</div>
+          <div className="text-center text-zinc-400 p-4">No jar added yet</div>
         )}
       </div>
+      {error && <p className="text-red-500 text-sm">{error}</p>}
       {jarArray.length > 0 && (
         <div className="w-full flex justify-end">
-          <Button onClick={onSave}>Save</Button>
+          <Button onClick={onSave} disabled={isLoading}>
+            {isLoading ? "Creating..." : "Create Budget"}
+          </Button>
         </div>
       )}
     </div>
