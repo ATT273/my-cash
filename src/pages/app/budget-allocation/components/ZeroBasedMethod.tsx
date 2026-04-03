@@ -42,6 +42,14 @@ const ZeroBasedMethod = ({ walletBalance, onSubmit, isLoading }: ZeroBasedMethod
       setError("Add at least one jar");
       return;
     }
+    if (walletBalance > 0 && totalAllocated === 0) {
+      setError("Please enter allocation amounts for your jars");
+      return;
+    }
+    if (totalAllocated > walletBalance) {
+      setError("Total allocated amount exceeds wallet balance");
+      return;
+    }
     setError("");
     const jars: CreateBudgetJarInput[] = jarArray.map((jar) => ({
       name: jar.name,
