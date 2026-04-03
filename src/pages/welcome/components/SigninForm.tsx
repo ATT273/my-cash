@@ -44,6 +44,7 @@ const SigninForm = ({ openSignupForm }: { openSignupForm: () => void }) => {
           <p>Password</p>
           <Input
             value={formData.password}
+            type="password"
             onChange={(e) =>
               setFormData((prev) => ({
                 ...prev,

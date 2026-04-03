@@ -48,6 +48,20 @@ export const signOut = async (userId: string): Promise<{ success: boolean }> => 
   return { success: true };
 };
 
+export const changePassword = async (
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<{ success: boolean; message?: string }> => {
+  const user = await userRepo.findById(userId);
+  if (!user) return { success: false, message: "User not found" };
+  const hashedCurrent = await hashPassword(currentPassword);
+  if (hashedCurrent !== user.password) return { success: false, message: "Current password is incorrect" };
+  const hashedNew = await hashPassword(newPassword);
+  await userRepo.update(userId, { password: hashedNew });
+  return { success: true };
+};
+
 export const verifyToken = async (
   userId: string,
   token: string

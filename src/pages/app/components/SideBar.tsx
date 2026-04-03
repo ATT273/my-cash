@@ -1,7 +1,7 @@
 import { NavLink } from "react-router";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CircleUserRound, HandCoins, LayoutDashboard, ChartColumnBig, PiggyBank, Wallet } from "lucide-react";
+import { HandCoins, LayoutDashboard, ChartColumnBig, PiggyBank, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ProfilePopover from "@/pages/app/profile/components/ProfilePopover";
 
 const SidebarNav = () => {
   return (
@@ -43,12 +43,7 @@ const SidebarNav = () => {
           )}
         </NavLink>
       </div>
-      <Avatar>
-        <AvatarImage alt="@shadcn" />
-        <AvatarFallback>
-          <CircleUserRound />
-        </AvatarFallback>
-      </Avatar>
+      <ProfilePopover />
     </div>
   );
 };

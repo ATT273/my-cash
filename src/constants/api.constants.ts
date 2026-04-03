@@ -6,6 +6,12 @@ export const AUTH_ROUTES = {
   SIGNIN: `${BASE}/auth/signin`,
   SIGNOUT: `${BASE}/auth/signout`,
   VERIFY: `${BASE}/auth/verify`,
+  CHANGE_PASSWORD: `${BASE}/auth/change-password`,
+};
+
+// Users
+export const USER_ROUTES = {
+  BY_ID: (id: string) => `${BASE}/users/${id}`,
 };
 
 // Transactions
