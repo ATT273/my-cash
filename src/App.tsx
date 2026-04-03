@@ -9,6 +9,7 @@ import Transaction from "./pages/app/transaction";
 import Report from "./pages/app/report";
 import BudgetAllocationPage from "./pages/app/budget-allocation";
 import WalletPage from "./pages/app/wallet";
+import ProfilePage from "./pages/app/profile";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
       { path: "report", Component: Report },
       { path: "budget-allocation", Component: BudgetAllocationPage },
       { path: "wallet", Component: WalletPage },
+      { path: "profile", Component: ProfilePage },
     ],
   },
 ]);

@@ -34,6 +34,17 @@ export const signOut = async (req: Request, res: Response) => {
   }
 };
 
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    const { userId, currentPassword, newPassword } = req.body;
+    const result = await authService.changePassword(userId, currentPassword, newPassword);
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Failed to change password" });
+  }
+};
+
 export const verifyToken = async (req: Request, res: Response) => {
   try {
     const userId = req.query.userId as string;

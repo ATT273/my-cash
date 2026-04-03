@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from "react";
 import * as authService from "@/services/auth.service";
 import type { ILocalUser } from "@/types/user.types";
@@ -10,6 +11,7 @@ interface AuthContextValue {
   isChecking: boolean;
   currentUser: ILocalUser | null;
   checkAuth: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -51,6 +53,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     }
   };
 
+  const logout = async () => {
+    await authService.signOut();
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+  };
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -60,6 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     isChecking,
     currentUser,
     checkAuth,
+    logout,
   };
 
   if (isChecking) {
