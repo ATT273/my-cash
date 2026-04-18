@@ -78,20 +78,45 @@ model Jar {
   color     String
   createdAt DateTime @default(now())
 
-  budget       Budget            @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-  allocation   BudgetAllocation?
-  transactions Transaction[]
+  budget          Budget                 @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  allocation      BudgetAllocation?
+  transactions    Transaction[]
+  dailyBalances   DailyEnvelopeBalance[]
+  overspendEvents OverspendEvent[]
 }
 
 model BudgetAllocation {
-  id         String  @id @default(uuid())
-  budgetId   String
-  jarId      String  @unique
-  amount     Float
-  percentage Float?
+  id          String  @id @default(uuid())
+  budgetId    String
+  jarId       String  @unique
+  amount      Float
+  percentage  Float?
+  isOverspent Boolean @default(false)
 
   budget Budget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
   jar    Jar    @relation(fields: [jarId], references: [id], onDelete: Cascade)
+}
+
+model DailyEnvelopeBalance {
+  id     String   @id @default(uuid())
+  jarId  String
+  date   DateTime
+  amount Float
+
+  jar Jar @relation(fields: [jarId], references: [id], onDelete: Cascade)
+
+  @@map("daily_envelope_balances")
+}
+
+model OverspendEvent {
+  id         String    @id @default(uuid())
+  envelopeId String
+  startedAt  DateTime
+  endedAt    DateTime?
+
+  jar Jar @relation(fields: [envelopeId], references: [id], onDelete: Cascade)
+
+  @@map("overspend_events")
 }
 
 enum TransactionType {
